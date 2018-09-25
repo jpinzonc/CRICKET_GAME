@@ -5,12 +5,8 @@ Created on Mon Sep 24 18:11:55 2018
 
 @author: jpinzon
 """
-
-
-
-numbers = [50, 20,19,18,17,16,15] # Using 50 as bullseye
 import numpy as np
-    
+import pandas as pd
 class dart_score():
     def __init__(self):
         self.numbers = [25, 20, 19, 18, 17, 16, 15, 0]# Using 50 as bullseye
@@ -18,6 +14,9 @@ class dart_score():
         self.h_dart = np.nan
         self.v_dart = np.nan
         self.s_dart = np.nan
+        self.scoreb = pd.DataFrame()
+        self.hit    = pd.DataFrame()
+        
         self.n_hits = {15:0,
                        16:0,
                        17:0,
@@ -26,9 +25,24 @@ class dart_score():
                        20:0,
                        25:0
                        }
+    def init_scoreb_hit_b(self, n):
+        hit_df = pd.DataFrame({'Player_1' : 0, 'Player_2' : 0}, index = [0] )
+        n_players = int(n)
+        if n_players < 2:
+            print('Minumum number of players is 2 \n Try Again')
         
+        elif n_players == 2:
+            self.scoreb =  self.hit = hit_df
+        else:
+            for player in list(range(2, int(n_players)+1)):
+                column_name = 'Player_'+str(player)
+                hit_df.loc[:,column_name] = 0
+                hit_df.loc[:,column_name] = hit_df[column_name].astype(np.int64)
+            self.scoreb =  self.hit = hit_df
+            
     def num_of_players(self):
-        self.num_players = int(input("How many players:"))
+        num_players = input("How many players:")
+        self.init_scoreb_hit_b(num_players)
         
     def score_per_dart(self):
         self.h_dart = np.nan
@@ -102,7 +116,8 @@ class dart_score():
         return self.numbers
 
 a = dart_score()
-
+a.scoreb
+a.num_of_players()
 a.score_per_turn()
 
 b = a.n_hits
@@ -128,6 +143,11 @@ while current_hits < 3:
     current_hits = current_hits + 1
 print(number, current_hits)
     
+
+
+hits(2)
+hits(5).info()
     
+
     
     
