@@ -1,2 +1,2 @@
 # DI
-Repo to score system
+App to keep track of score on a Dart Game
