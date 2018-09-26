@@ -11,7 +11,6 @@ class dart_score():
     def __init__(self):
         self.numbers = [25, 20, 19, 18, 17, 16, 15, 0]# Using 50 as bullseye
         self.player_number = np.nan
-        self.num_players = np.nan
         self.h_dart = np.nan
         self.v_dart = np.nan
         self.score_df = pd.DataFrame()
@@ -47,13 +46,13 @@ class dart_score():
         self.hit_df = hit_df.drop(0,0).sort_index()
                
     def num_of_players(self):
-        self.num_players = input("How many players:")
-        self.init_scoreb_hit_b(self.num_players)
+        self.player_number = input("How many players:")
+        self.init_scoreb_hit_b(self.player_number)
         
     def score_per_turn(self):
         self.h_dart = v_dart = np.nan
         self.v_dart = h_dart = np.nan
-        print(v_dart, h_dart, 'ACA')
+        
         while np.isnan(v_dart):
             # Asking for the number hit in the turn
             v_dart = input('Number (Bullseye = B or 25. Missed = 0):')
@@ -61,7 +60,6 @@ class dart_score():
                 v_dart = 25
             else:
                 v_dart = int(v_dart)
-            
             if v_dart in self.numbers:
                 print('Thanks, Score being calculated')
             else:
@@ -100,12 +98,10 @@ class dart_score():
         
         # Check number status:
         n_status = n_hits[v_dart]['status']
-        print(n_status, 'STATIS')
         if n_status == 0:
             score = 0
             #check hits
             current_hits = int(hit_df[player_number].loc[[v_dart]])
-            print(current_hits, 'q')
             if current_hits == 0:
                 current_hits = current_hits + h_dart
                 h_dart = 0
@@ -120,16 +116,13 @@ class dart_score():
 
             hit_df[player_number].loc[[v_dart]] = current_hits
                     
-            print(current_hits, 'q2')
             if current_hits >= 3:
                 hit_df[player_number].loc[[v_dart]] = 3
                 n_hits[v_dart]['status'] = 1
                 n_hits[v_dart]['player'] = player_number
                 n_status = n_hits[v_dart]['status']
                 
-        print(n_status, 'SATUS1')
         open_player = n_hits[v_dart]['player']
-        print(open_player, h_dart)
         if (n_status == 1) & (player_number == open_player):
             score = v_dart * h_dart
         if (n_status == 1) & (player_number != open_player):
@@ -147,30 +140,36 @@ class dart_score():
                     n_hits[v_dart]['status'] = 2
         if n_status == 2:
             score = 0
-        print(score)
         score_df[player_number].loc[[0]] = score_df[player_number].loc[[0]] + score
         print(hit_df)
         self.score_df = score_df
         self.hit_df = hit_df
         print(score_df)
-
     
     def record_play(self):
-        player_number = input('Enter player number:')
-        self.player_number = 'Player_'+str(player_number)
+        #player_number = input('Enter player number:')
+        #self.player_number = 'Player_'+str(player_number)
         for play in [1,2,3]:
             print('Turn',format(play))
             self.score_per_turn()
-
         
-    def play(self):
-        if np.isnan(self.player_number):
-            print ('Players')
-        else:
-            print('GOOD')
+    def start(self):
+        player = self.player_number
+        print(player)
+        if np.isnan(player):
+            self.num_of_players()
+            player = self.player_number
+            print(player)
+        if (np.isnan(int(player))==False):
+            for player in list(range(1,1+int(self.player_number))):
+                self.player_number = 'Player_'+str(player)
+                print('Now playing: {}'.format(self.player_number))
+                self.record_play()
+                print(self.player_number )
+ 
 
 a = dart_score()
-a.play()
+a.start()
 a.num_of_players()
 
 a.n_hits
