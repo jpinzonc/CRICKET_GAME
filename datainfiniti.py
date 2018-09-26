@@ -10,46 +10,50 @@ import pandas as pd
 class dart_score():
     def __init__(self):
         self.numbers = [25, 20, 19, 18, 17, 16, 15, 0]# Using 50 as bullseye
+        self.player_number = np.nan
         self.num_players = np.nan
         self.h_dart = np.nan
         self.v_dart = np.nan
-        self.s_dart = np.nan
-        self.scoreb = pd.DataFrame()
-        self.hit    = pd.DataFrame()
+        self.score_df = pd.DataFrame()
+        self.hit_df   = pd.DataFrame()
         
-        self.n_hits = {15:0,
-                       16:0,
-                       17:0,
-                       18:0,
-                       19:0,
-                       20:0,
-                       25:0
+        self.n_hits = {15:{'status':0,'player':0},
+                       16:{'status':0,'player':0},
+                       17:{'status':0,'player':0},
+                       18:{'status':0,'player':0},
+                       19:{'status':0,'player':0},
+                       20:{'status':0,'player':0},
+                       25:{'status':0,'player':0}
                        }
     def init_scoreb_hit_b(self, n):
         hit_df = pd.DataFrame({'Player_1' : 0, 'Player_2' : 0}, index = [0] )
         n_players = int(n)
         if n_players < 2:
             print('Minumum number of players is 2 \n Try Again')
-        
         elif n_players == 2:
-            self.scoreb =  self.hit = hit_df
+            score_df =  hit_df = hit_df
         else:
             for player in list(range(2, int(n_players)+1)):
                 column_name = 'Player_'+str(player)
                 hit_df.loc[:,column_name] = 0
                 hit_df.loc[:,column_name] = hit_df[column_name].astype(np.int64)
-            self.scoreb =  self.hit = hit_df
-            
+            score_df = hit_df = hit_df
+        score_df.index.name = 'SCORES'
+        self.score_df = score_df
+        for number in self.numbers[0:7]:
+            s2 = pd.Series([0] * n_players, index = hit_df.columns, name = number)
+            hit_df = hit_df.append(s2)
+            hit_df.index.name = 'NUMBER'
+        self.hit_df = hit_df.drop(0,0).sort_index()
+               
     def num_of_players(self):
-        num_players = input("How many players:")
-        self.init_scoreb_hit_b(num_players)
+        self.num_players = input("How many players:")
+        self.init_scoreb_hit_b(self.num_players)
         
-    def score_per_dart(self):
-        self.h_dart = np.nan
-        self.v_dart = np.nan
-        self.s_dart = np.nan
-
-        v_dart = np.nan
+    def score_per_turn(self):
+        self.h_dart = v_dart = np.nan
+        self.v_dart = h_dart = np.nan
+        print(v_dart, h_dart, 'ACA')
         while np.isnan(v_dart):
             # Asking for the number hit in the turn
             v_dart = input('Number (Bullseye = B or 25. Missed = 0):')
@@ -83,42 +87,97 @@ class dart_score():
                 h_dart = np.nan
         self.h_dart = h_dart
         self.v_dart = v_dart
+        self.hits_update()
     
     def hits_update(self):
-        v_dart = self.v_dart
-        h_dart = self.h_dart
-        hits_dict = self.n_hits 
-        current_hits = hits_dict[v_dart]
+        player_number  = self.player_number
+        v_dart   = self.v_dart
+        h_dart   = self.h_dart
+        n_hits   = self.n_hits 
+        score_df = self.score_df
+        hit_df   = self.hit_df
+        print(v_dart, h_dart)
         
-        while current_hits < 3:
-            h_dart = h_dart - 1
-            current_hits = current_hits + 1
+        # Check number status:
+        n_status = n_hits[v_dart]['status']
+        print(n_status, 'STATIS')
+        if n_status == 0:
+            score = 0
+            #check hits
+            current_hits = int(hit_df[player_number].loc[[v_dart]])
+            print(current_hits, 'q')
+            if current_hits == 0:
+                current_hits = current_hits + h_dart
+                h_dart = 0
+            elif current_hits < 3:
+                need = 3 - current_hits
+                if h_dart <= need:
+                    current_hits = current_hits + need
+                    h_dart = 0
+                if h_dart > need:
+                    h_dart = h_dart - need
+                    current_hits = current_hits + need
+
+            hit_df[player_number].loc[[v_dart]] = current_hits
+                    
+            print(current_hits, 'q2')
+            if current_hits >= 3:
+                hit_df[player_number].loc[[v_dart]] = 3
+                n_hits[v_dart]['status'] = 1
+                n_hits[v_dart]['player'] = player_number
+                n_status = n_hits[v_dart]['status']
+                
+        print(n_status, 'SATUS1')
+        open_player = n_hits[v_dart]['player']
+        print(open_player, h_dart)
+        if (n_status == 1) & (player_number == open_player):
+            score = v_dart * h_dart
+        if (n_status == 1) & (player_number != open_player):
+            score = 0
+            player_hits = int(hit_df[player_number].loc[[v_dart]])
+            print(player_hits, 'q3')
+            if player_hits < 3:
+                player_hits = player_hits + h_dart
+                hit_df[player_number].loc[[v_dart]] = player_hits
+                h_dart = h_dart - player_hits
+                    
+                print(player_hits, 'q4')
+                if player_hits >= 3:
+                    hit_df[player_number].loc[[v_dart]] = 3
+                    n_hits[v_dart]['status'] = 2
+        if n_status == 2:
+            score = 0
+        print(score)
+        score_df[player_number].loc[[0]] = score_df[player_number].loc[[0]] + score
+        print(hit_df)
+        self.score_df = score_df
+        self.hit_df = hit_df
+        print(score_df)
+
+    
+    def record_play(self):
+        player_number = input('Enter player number:')
+        self.player_number = 'Player_'+str(player_number)
+        for play in [1,2,3]:
+            print('Turn',format(play))
+            self.score_per_turn()
+
         
-        self.hits_dict[v_dart] = current_hits
-        self.v_dart = v_dart
-        self.h_dart = h_dart
-            
-    def hits_score_per_turn(self):
-        hits_dict = self.n_hits 
-        if hits_dict[self.v_dart] >=3:
-            print('{} is closed'.format(self.v_darth))
-        hits  = 0
-        score = 0
-        for shot in list(range(1,4)):
-            self.score_per_dart()
-            score_ = self.s_dart
-            score = score_ + score
-        print('SCORE:', score)
-            
-       
-        
-    def print_numbers(self):
-        return self.numbers
+    def play(self):
+        if np.isnan(self.player_number):
+            print ('Players')
+        else:
+            print('GOOD')
 
 a = dart_score()
-a.scoreb
+a.play()
 a.num_of_players()
-a.score_per_turn()
+
+a.n_hits
+a.hit_df
+a.score_df.T
+a.record_play()
+
 
 b = a.n_hits
 b[15]=2
@@ -142,12 +201,29 @@ while current_hits < 3:
     number = number -1
     current_hits = current_hits + 1
 print(number, current_hits)
+ 
+c = a.hit_df
+numbers = [25, 20, 19, 18, 17, 16, 15]# Using 50 as bullseye
+for number in numbers:
+    s2 = pd.Series([0] * 7, index=c.columns, name = number)
+    c = c.append(s2)
+c  
+   
+for col in c.columns:
+    for number in numbers:
+        print(col, number)
+    print(col)
+    c.loc[:,col] = 
+    
+s2 = pd.Series([0] * 7, index = c.columns)
+
+result = c.append(s2, ignore_index = True)
+
+a.numbers[0:7]
+c.sort_index()
+
+c['Player_1'].loc[[16]]
     
 
-
-hits(2)
-hits(5).info()
-    
-
-    
+a.hit_df['Player_1'].loc[[16]]  == 0
     
