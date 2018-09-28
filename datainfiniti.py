@@ -9,13 +9,28 @@ import numpy as np
 import pandas as pd
 class dart_score():
     def __init__(self):
-        self.numbers = [25, 20, 19, 18, 17, 16, 15, 0]
+        # Set variables for the game 
+        ## Numbers used in traditional Cricket (Darts)
+        self.numbers = [25, 20, 19, 18, 17, 16, 15, 0] 
+        ## Different acceptable numbers input
+        self.numbers_dict = {15: [15, '15', 'fifteen', 'fifteen points', 'quince'],
+                             16: [16, '16', 'sixteen', 'sixteen points', 'dieciseis'],
+                             17: [17, '17', 'seventeen', 'seventeen points', 'diecisiete'],
+                             18: [18, '18', 'eigthteen', 'eigthteen points', 'dieciocho'],
+                             19: [19, '19', 'nineteen', 'nineteen points', 'diecinueve'],
+                             20: [20, '20', 'twenty', 'twenty points', 'veinte'],
+                             25: [25, '25', '25', 'bullseye', 'b', 'diana'],
+                              0: [ 0,  '0', 'missing', 'no points', 'out', 'zero', 'no puntuación']}
+        ## Record of the number of players
         self.player_number = np.nan
+        ## Number and points for each turn 
         self.h_dart = np.nan
         self.v_dart = np.nan
+        ## Record of the total points (score_df), hits(hit_df), 
+        ## and status of the numbers (n_hits)
         self.score_df = pd.DataFrame()
         self.hit_df   = pd.DataFrame()
-        
+     
         self.n_hits = {15:{'status':0,'player':0},
                        16:{'status':0,'player':0},
                        17:{'status':0,'player':0},
@@ -24,9 +39,15 @@ class dart_score():
                        20:{'status':0,'player':0},
                        25:{'status':0,'player':0}
                        }
-    def init_scoreb_hit_b(self, number):
+
+    def init_scoreb_hit_b(self):
+        '''
+        Asks for the number of players in the game and generates the initial 
+        score and hit tables depending on that number.
+        '''
+        self.player_number = input("How many players:")        
         hit_df1 = pd.DataFrame({'Player_1': 0, 'Player_2': 0}, index = [0] )
-        n_players = int(number)
+        n_players = int(self.player_number)
         if n_players < 2:
             print('Minumum number of players is 2 \n Try Again')
         elif n_players == 2:
@@ -37,38 +58,37 @@ class dart_score():
                 hit_df1.loc[:,column_name] = 0
                 hit_df1.loc[:,column_name] = hit_df1[column_name].astype(np.int64)
                 score_df = hit_df = hit_df1
-        #score_df.loc[:,'SCORE'] = 'SCORE'
-        #score_df = score_df.set_index('SCORE')
-        score_df.index.name = 'SCORES'
+        # DF to track scores
+        score_df.name = 'SCORE'
         self.score_df = score_df
         for number in self.numbers[0:7]:
-            
             s2 = pd.Series([0] * n_players, index = hit_df.columns, name = number)
             hit_df = hit_df.append(s2)
             hit_df.index.name = 'NUMBER'
+        # DF to track numbers as not played 0, open 1, and closed 2 and the 
+        # player that openned it  
         self.hit_df = hit_df.drop(0, 0).sort_index()
                
-    def num_of_players(self):
-        self.player_number = input("How many players:")
-        self.init_scoreb_hit_b(self.player_number)
-        
     def score_per_turn(self):
+        '''
+        Function to calculate each turn score.
+        With that score, it triggers the hits_update function
+        '''
         self.h_dart = v_dart = np.nan
         self.v_dart = h_dart = np.nan
-        
         while np.isnan(v_dart):
             # Asking for the number hit in the turn
-            v_dart = input('Number 15-20 and Bullseye (B or 25). Missed/Other number = 0):')
-            if v_dart.upper() == 'B':
-                v_dart = 25
-            else:
-                v_dart = int(v_dart)
-            if v_dart in self.numbers:
-                print('Thanks, Value accepted')
-            else:
+            val_input = input('Enter the Number (numbers of letters - for missed enter missing or 0):')
+            v_dart = next((k for k, v in numbers_dict.items() if val_input.lower() in v),
+                          'Notfound')
+            print(v_dart)
+            if v_dart == 'Notfound':
                 print('#### Check the values and try again ####')
                 v_dart = np.nan
-        if v_dart != 0:
+            else:
+                print('Thanks, Value accepted')
+
+        if v_dart in self.numbers[0:7]:
             h_dart = np.nan
         else:
             h_dart = 0
@@ -80,7 +100,7 @@ class dart_score():
                 msg = 'Enter the appropiate value:\n 1. Single \n 2. Double \n 3. Triple'
                 value_l = [1, 2, 3]
             print(msg)
-            h_dart = int(input('Score:'))
+            h_dart = int(input('Points:'))
             if h_dart in value_l:
                 print('\nThanks score been calculated')
             else: 
@@ -91,6 +111,12 @@ class dart_score():
         self.hits_update()
     
     def hits_update(self):
+        '''
+        This function uses the score for each turn and uptades:
+            score_df -- Game Score
+            hit_df   -- Hits table
+            n_hit    -- Number status
+        '''
         player_number  = self.player_number
         v_dart   = self.v_dart
         h_dart   = self.h_dart
@@ -98,12 +124,13 @@ class dart_score():
         score_df = self.score_df
         hit_df   = self.hit_df
         
-        if v_dart ==0:
+        if v_dart == 0:
             self.score_df = score_df
             self.hit_df = hit_df
         
         else:
             # Check number status:
+            # if status is empty
             n_status = n_hits[v_dart]['status']
             if n_status == 0:
                 score = 0
@@ -128,7 +155,7 @@ class dart_score():
                     n_hits[v_dart]['status'] = 1
                     n_hits[v_dart]['player'] = player_number
                     n_status = n_hits[v_dart]['status']
-                    
+            # if not       
             open_player = n_hits[v_dart]['player']
             if (n_status == 1) & (player_number == open_player):
                 score = v_dart * h_dart
@@ -143,24 +170,34 @@ class dart_score():
                 if player_hits >= 3:
                     hit_df[player_number].loc[[v_dart]] = 3
                     n_hits[v_dart]['status'] = 2
+            # if closed
             if n_status == 2:
                 score = 0
             score_df[player_number].loc[[0]] = score_df[player_number].loc[[0]] + score
             self.score_df = score_df
             self.hit_df = hit_df
-            print(hit_df)
-            print(score_df)
+        print(hit_df)
+        print(score_df)
     
     def record_play(self):
+        '''
+        Runs each turn for each player
+        '''
         for play in [1, 2, 3]:
             print('Now playing: {}'.format(self.player_number))
             print('Turn',format(play))
             self.score_per_turn()
         
     def play_darts(self):
+        '''
+        Main function, starts the game, runs the turns, 
+        keeps track of the status of the numbers, 
+        stops the game when all numbers have a closed (2) status, and
+        generates the score and final result. 
+        '''
         player = self.player_number
         if np.isnan(player):
-            self.num_of_players()
+            self.init_scoreb_hit_b()
             player = players = self.player_number
         
         while pd.DataFrame(data = self.n_hits).T.status.sum() < 14:
@@ -169,29 +206,41 @@ class dart_score():
                     self.player_number = 'Player_' + str(player)
                     self.record_play()
                     print('GOOD PLAY!!! KEEP THE HARD WORK!!!')
-                    print('##############################################')
+                    print('###############################################')
 
-        print('##############################################')
-        print('################# GAME OVER ##################')
+        print('###############################################')
+        print('################# GAME OVER ###################')
+        # Checking the score
         final_score = self.score_df
         final_score.loc[:,'SCORE'] = 'SCORE'
         final_score = final_score.set_index('SCORE')
         final_score.index.name = ''
-        winner = final_score.idxmax(axis=1)[0]
-        max_score = final_score.max(axis=1)[0]
-        
-        print('##############################################')
-        print('##############################################')
+        # Checking for ties and deciding the winner
+        tie_break = self.score_df.T[0].value_counts().max()
+        if tie_break !=1:
+            print('Points tied - deciding winner on numbers closed')
+            winner = pd.DataFrame(data = self.n_hits).T.player.value_counts().idxmax(axis = 0)
+            max_score = final_score.max(axis=1)[0]   
+        elif tie_break == 1:    
+            winner = final_score.idxmax(axis=1)[0]
+            max_score = final_score.max(axis=1)[0]
+            
+        print('###############################################')
+        print('###############################################')
 
-        print('############# FINAL SCORE TABLE ##############\n', 
+        print('############# FINAL SCORE TABLE ###############\n', 
               final_score,
-              '\n############# FINAL SCORE TABLE ##############')
+              '\n############# FINAL SCORE TABLE ###############')
 
-        print('##############################################')
+        print('###############################################')
 
         print('THE WINNER IS {}\nWITH {} POINTS'.format(winner, max_score))
                 
-        print('##############################################')
-        print('##############################################')
+        print('###############################################')
+        print('###############################################')
 
-dart_score().play_darts()
+a = dart_score()
+a.play_darts()
+
+
+
