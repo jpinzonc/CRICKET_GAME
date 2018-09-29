@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Sep 24 18:11:55 2018
-
-@author: jpinzon
+App designed to keep track of scores in the Dart Game Cricket
+@author: Jorge Pinzón
 """
 import numpy as np
 import pandas as pd
@@ -30,7 +30,6 @@ class dart_score():
         ## and status of the numbers (n_hits)
         self.score_df = pd.DataFrame()
         self.hit_df   = pd.DataFrame()
-     
         self.n_hits = {15:{'status':0,'player':0},
                        16:{'status':0,'player':0},
                        17:{'status':0,'player':0},
@@ -45,7 +44,7 @@ class dart_score():
         Asks for the number of players in the game and generates the initial 
         score and hit tables depending on that number.
         '''
-        self.player_number = input("How many players:")        
+        self.player_number = self.num_players = input("How many players:")        
         hit_df1 = pd.DataFrame({'Player_1': 0, 'Player_2': 0}, index = [0] )
         n_players = int(self.player_number)
         if n_players < 2:
@@ -79,15 +78,13 @@ class dart_score():
         while np.isnan(v_dart):
             # Asking for the number hit in the turn
             val_input = input('Enter the Number (numbers of letters - for missed enter missing or 0):')
-            v_dart = next((k for k, v in numbers_dict.items() if val_input.lower() in v),
+            v_dart = next((k for k, v in self.numbers_dict.items() if val_input.lower() in v),
                           'Notfound')
-            print(v_dart)
             if v_dart == 'Notfound':
                 print('#### Check the values and try again ####')
                 v_dart = np.nan
             else:
                 print('Thanks, Value accepted')
-
         if v_dart in self.numbers[0:7]:
             h_dart = np.nan
         else:
@@ -123,11 +120,9 @@ class dart_score():
         n_hits   = self.n_hits 
         score_df = self.score_df
         hit_df   = self.hit_df
-        
         if v_dart == 0:
             self.score_df = score_df
             self.hit_df = hit_df
-        
         else:
             # Check number status:
             # if status is empty
@@ -147,9 +142,7 @@ class dart_score():
                     if h_dart > need:
                         h_dart = h_dart - need
                         current_hits = current_hits + need
-    
                 hit_df[player_number].loc[[v_dart]] = current_hits
-                        
                 if current_hits >= 3:
                     hit_df[player_number].loc[[v_dart]] = 3
                     n_hits[v_dart]['status'] = 1
@@ -159,19 +152,27 @@ class dart_score():
             open_player = n_hits[v_dart]['player']
             if (n_status == 1) & (player_number == open_player):
                 score = v_dart * h_dart
-            if (n_status == 1) & (player_number != open_player):
+            elif (n_status == 1) & (player_number != open_player):
                 score = 0
                 player_hits = int(hit_df[player_number].loc[[v_dart]])
                 if player_hits < 3:
                     player_hits = player_hits + h_dart
                     hit_df[player_number].loc[[v_dart]] = player_hits
                     h_dart = h_dart - player_hits
-                
                 if player_hits >= 3:
                     hit_df[player_number].loc[[v_dart]] = 3
                     n_hits[v_dart]['status'] = 2
             # if closed
-            if n_status == 2:
+            elif (n_status == 2) & (self.hit_df.loc[v_dart].sum() < (3 * int(self.num_players))):
+                score = 0
+                player_hits = int(hit_df[player_number].loc[[v_dart]])
+                if player_hits < 3:
+                    player_hits = player_hits + h_dart
+                    hit_df[player_number].loc[[v_dart]] = player_hits
+                if player_hits >= 3:
+                    hit_df[player_number].loc[[v_dart]] = 3
+                    score = 0
+            elif (n_status == 2) & (self.hit_df.loc[v_dart].sum() >= (3 * int(self.num_players))):
                 score = 0
             score_df[player_number].loc[[0]] = score_df[player_number].loc[[0]] + score
             self.score_df = score_df
@@ -195,19 +196,22 @@ class dart_score():
         stops the game when all numbers have a closed (2) status, and
         generates the score and final result. 
         '''
+        # Check if theplayer number is null to start the game
         player = self.player_number
         if np.isnan(player):
             self.init_scoreb_hit_b()
             player = players = self.player_number
-        
-        while pd.DataFrame(data = self.n_hits).T.status.sum() < 14:
-            if (np.isnan(int(player)) == False):
+        # In player number is not null plays the game
+        if (np.isnan(int(player)) == False):
+            while pd.DataFrame(data = self.n_hits).T.status.sum() < 14:
                 for player in list(range(1, 1 + int(players))):
                     self.player_number = 'Player_' + str(player)
                     self.record_play()
                     print('GOOD PLAY!!! KEEP THE HARD WORK!!!')
                     print('###############################################')
-
+                    # Checking there is a number still open
+                    if pd.DataFrame(data = self.n_hits).T.status.sum() == 14:
+                        break
         print('###############################################')
         print('################# GAME OVER ###################')
         # Checking the score
@@ -216,31 +220,23 @@ class dart_score():
         final_score = final_score.set_index('SCORE')
         final_score.index.name = ''
         # Checking for ties and deciding the winner
-        tie_break = self.score_df.T[0].value_counts().max()
-        if tie_break !=1:
+        max_count = final_score.T['SCORE'].value_counts().iloc[:1].index[0]
+        if max_count == final_score.max(1)[0]:
             print('Points tied - deciding winner on numbers closed')
             winner = pd.DataFrame(data = self.n_hits).T.player.value_counts().idxmax(axis = 0)
             max_score = final_score.max(axis=1)[0]   
-        elif tie_break == 1:    
+        else:    
             winner = final_score.idxmax(axis=1)[0]
             max_score = final_score.max(axis=1)[0]
-            
+        print('###############################################')
+        print('###############################################')
+        print('############# FINAL SCORE TABLE ###############\n{}'\
+              '\n############# FINAL SCORE TABLE ###############'.format(final_score))
+        print('###############################################')
+        print('########## THE WINNER IS {} ##########\n##########     WITH {} POINTS     ##########'.format(winner, max_score))
         print('###############################################')
         print('###############################################')
 
-        print('############# FINAL SCORE TABLE ###############\n', 
-              final_score,
-              '\n############# FINAL SCORE TABLE ###############')
+dart_game = dart_score()
 
-        print('###############################################')
-
-        print('THE WINNER IS {}\nWITH {} POINTS'.format(winner, max_score))
-                
-        print('###############################################')
-        print('###############################################')
-
-a = dart_score()
-a.play_darts()
-
-
-
+dart_game.play_darts()
