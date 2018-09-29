@@ -26,8 +26,8 @@ The features include:
    
    - Track the status of the numbers: Not open, open, and close. 
     
-          Scores are added only if the number is open and only for the player that opened it. Once the number is closed by another
-          player, the score on that number is zero for all players. 
+          Scores are added only if the number is open and only for the player that opened it. 
+          Once the number is closed by another player, the score on that number is zero for all players. 
    
    - Track wich player Opens a number.
    
@@ -59,6 +59,7 @@ To run the app:
   `dart_game.play_darts()`
   
   -  **OR**, copy the code from the file into a Jupyter Notebook and run the commands above 
+      
       This option may not display well
   
    
