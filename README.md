@@ -1,2 +1,67 @@
-# DI
-App to keep track of score on a Dart Game
+# Cricket Game Track App
+
+## PURPOSE:
+The purpose of this project is to build a tool to allow Cricket players to track, provide an score, and winner of the game. 
+
+## DESCRIPTION:
+The app follow the description and rules of the game, as provided in these two sites:
+   - https://en.wikipedia.org/wiki/Cricket_(darts)
+    
+   - https://www.dartspiks.com/cricket.html
+    
+The features include:
+   - Multiple players (minimum of 2).
+   
+   - Use the traditional 15-20  numbers and the bullseye. 
+   
+   - Handles multiple entries for each number, as well as missed targets or other numbers not in the game (all coded as zero).
+          
+          For example, 20 can be 20, twenty, twenty points, and veinte (twently in spahish)
+   
+   - Numbers are scored as single, double, and triple by multiplying the number and the number of hits (1, 2, or 3).
+   
+   - Bullseye is score with 25 points as a single or 50 as a double. 
+    
+   - Continuos point (score) and number of hits.
+   
+   - Track the status of the numbers: Not open, opened, and close. 
+    
+          Scores are added only if the number is open and only for the player that opened. Once the number is closed by other
+          player, the score on that number is zero for all players. 
+   
+   - Track wich player Open a number.
+   
+          Important in case tie in points - multiple ties are handle too)
+   
+   - Determine when all numbers are closed and ends the game. 
+   
+   - Provide final score with tie break when scores are the same, using the number of numbers open by the higher scoring players. 
+   
+  The app is build in *Python 3.6*, using *Syder 3.3.1* on *ANACONDA 1.9.2*. 
+  
+  Aside form the native functions, *pandas (0.23.0)* and *numpy (1.14.3)* are used. 
+  
+## RUNNING THE APP:
+
+To run the app:
+  - Clone/Dowload the repo
+  
+  - On a terminal go to the unzipped directory
+  
+  - Type this: 
+  
+   `python cricket_dart_game.py` 
+    
+  - **OR**,  open the file in Spyder and run:
+  
+  `dart_game = play_dart()`
+  
+  `dart_game.play_darts()`
+  
+  -  **OR**, copy the code from the file into a Jupyter Notebook and run the commands above (This option may not display well)
+  
+   
+   
+
+
+
