@@ -58,7 +58,8 @@ To run the app:
   
   `dart_game.play_darts()`
   
-  -  **OR**, copy the code from the file into a Jupyter Notebook and run the commands above (This option may not display well)
+  -  **OR**, copy the code from the file into a Jupyter Notebook and run the commands above 
+      This option may not display well
   
    
    
