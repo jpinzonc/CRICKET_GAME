@@ -61,6 +61,10 @@ To run the app:
   -  **OR**, copy the code from the file into a Jupyter Notebook and run the commands above 
       
       This option may not display well
+      
+  - in all three cases, follow the prompts
+
+**ENJOY**
   
    
    
